@@ -8,10 +8,31 @@
         tools:context=".MainActivity">
 
     <TextView
-            android:text="Front Activity"
+            android:text="Connection Status"
+            android:layout_width="180dp"
+            android:layout_height="0dp"
+            android:id="@+id/textView2"
+            android:textAppearance="@style/TextAppearance.AppCompat.Button"
+            app:layout_constraintEnd_toStartOf="@+id/connection_status_icon"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" android:layout_marginLeft="46dp"
+            android:layout_marginStart="46dp"
+            android:layout_marginEnd="58dp" android:layout_marginRight="58dp" android:layout_marginTop="28dp"
+            android:layout_marginBottom="33dp" app:layout_constraintBottom_toTopOf="@+id/button"/>
+    <ImageView
+            android:layout_width="108dp"
+            android:layout_height="24dp" android:src="@color/colorConnecting"
+            android:id="@+id/connection_status_icon"
+            android:layout_marginTop="28dp" app:layout_constraintStart_toEndOf="@+id/textView2"
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginEnd="76dp" android:layout_marginRight="76dp" android:visibility="visible"
+            app:layout_constraintHorizontal_bias="1.0"/>
+    <Button
+            android:text="Test connection"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/textView2" app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent" android:layout_marginTop="93dp"
-            android:layout_marginLeft="134dp" android:layout_marginStart="134dp"/>
+            android:id="@+id/test_connection"
+            app:layout_constraintTop_toBottomOf="@+id/textView2" android:layout_marginBottom="434dp"
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 </android.support.constraint.ConstraintLayout>

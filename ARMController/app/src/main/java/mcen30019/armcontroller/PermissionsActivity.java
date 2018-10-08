@@ -34,11 +34,9 @@ public class PermissionsActivity extends AppCompatActivity implements ActivityCo
 
     private void requestBluetoothPermissions(){
         if (checkBluetoothPermissions()){
-            Toast.makeText(this, "Permission already there!", Toast.LENGTH_LONG).show();
-
+            finish();
             return;
         }
-        Toast.makeText(this, "Permission not there!", Toast.LENGTH_LONG).show();
         ActivityCompat.requestPermissions(this, PERMISSIONS_BLUETOOTH, REQUEST_BLUETOOTH);
     }
 
@@ -51,9 +49,8 @@ public class PermissionsActivity extends AppCompatActivity implements ActivityCo
                 // All required permissions have been granted, display contacts fragment.
                 finish();
             } else {
-                Intent intent = new Intent(this, PermissionsActivity.class);
-                startActivity(intent);
-                finish();
+                Toast.makeText(this, "Sorry the app requires, these permissions to run!", Toast.LENGTH_LONG).show();
+                requestBluetoothPermissions();
             }
             // checked.
         }
@@ -64,7 +61,6 @@ public class PermissionsActivity extends AppCompatActivity implements ActivityCo
         if (grantResults.length < 1) {
             return false;
         }
-
         // Verify that each required permission has been granted, otherwise return false.
         for (int result : grantResults) {
             if (result != PackageManager.PERMISSION_GRANTED) {
