@@ -97,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Connection Successful with"+ bluetoothName +"!", Toast.LENGTH_SHORT).show();
             checkStatus();
         }
+        sendMessageToBluetooth();
     }
 
     private boolean turnBluetoothOn() {
@@ -146,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean testConnection() {
         //mBluetoothService = new BluetoothService(this);
-        mBluetoothService = new BluetoothService(mBluetoothDevice, mBluetoothAdapter, this);
+        mBluetoothService = new BluetoothService(mBluetoothDevice, this);
         Log.d(TAG, mBluetoothService.toString());
         return false;
     }
@@ -189,4 +190,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private boolean sendMessageToBluetooth() {
+        mBluetoothService.sendMessage("Hey can you recieve anything");
+        return false;
+    }
 }

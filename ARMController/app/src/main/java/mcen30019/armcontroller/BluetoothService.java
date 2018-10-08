@@ -15,23 +15,17 @@
  */
 package mcen30019.armcontroller;
 
-import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
+import android.util.Xml;
 import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
-import java.util.ResourceBundle;
 import java.util.UUID;
 
 /**
@@ -45,11 +39,11 @@ public class BluetoothService {
     private static final String TAG = "BluetoothService";
 
     private final String appName;
-    private final BluetoothAdapter mBluetoothAdapter;
     private final Context mContext;
     private final BluetoothDevice mBluetoothDevice;
     private ConnectThread mConnectThread;
-    //private ConnectedThread mConnectedThread;
+    private ConnectedThread mConnectedThread;
+    private BluetoothSocket bluetoothSocket;
 
     private final UUID UUID;
 
@@ -57,10 +51,9 @@ public class BluetoothService {
     public boolean rfCommSuccess = false;
     public boolean socketConnectSuccess = false;
 
-    public BluetoothService(BluetoothDevice mBluetoothDevice, BluetoothAdapter mBluetoothAdapter, Context context) {
+    public BluetoothService(BluetoothDevice mBluetoothDevice, Context context) {
         this.mBluetoothDevice = mBluetoothDevice;
         appName = context.getString(R.string.app_name);
-        this.mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         this.mContext = context;
         this.UUID = mBluetoothDevice.getUuids()[0].getUuid();
     }
@@ -90,7 +83,6 @@ public class BluetoothService {
     }
 
     private class ConnectThread extends Thread{
-        private BluetoothSocket bluetoothSocket = null;
         private final BluetoothDevice btDevice;
         public ConnectThread(BluetoothDevice btDevice){
             this.btDevice = btDevice;
@@ -129,5 +121,68 @@ public class BluetoothService {
                 e.printStackTrace();
             }
         }
+    }
+    private class ConnectedThread extends Thread {
+        private final BluetoothSocket connectedBluetoothSocket;
+        private final InputStream inputStream;
+        private final OutputStream outputStream;
+
+        public ConnectedThread(BluetoothSocket socket) {
+            this.connectedBluetoothSocket = socket;
+            InputStream in = null;
+            OutputStream out = null;
+            try {
+                in = socket.getInputStream();
+                out = socket.getOutputStream();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            this.inputStream = in;
+            this.outputStream = out;
+        }
+
+        @Override
+        public void run() {
+            byte[] buffer = new byte[1024];
+            int bytes;
+            while (true) {
+                try {
+                    bytes = inputStream.read(buffer);
+                    String strReceived = new String(buffer, 0, bytes);
+                    final String msgReceived = String.valueOf(bytes) +
+                            " bytes received:\n"
+                            + strReceived;
+                    Toast.makeText(mContext, "RECIEVED MESSAGE: "+ msgReceived, Toast.LENGTH_LONG);
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        }
+        public void write(byte[] buffer) {
+            try {
+                outputStream.write(buffer);
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+
+        public void cancel() {
+            try {
+                connectedBluetoothSocket.close();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public boolean sendMessage(String msg){
+        mConnectedThread = new ConnectedThread(bluetoothSocket);
+        mConnectedThread.start();
+        mConnectedThread.write(msg.getBytes());
+        return false;
     }
 }
