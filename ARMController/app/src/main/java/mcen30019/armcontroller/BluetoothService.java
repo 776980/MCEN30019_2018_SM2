@@ -15,12 +15,10 @@
  */
 package mcen30019.armcontroller;
 
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.util.Log;
-import android.util.Xml;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -38,60 +36,54 @@ public class BluetoothService {
 
     private static final String TAG = "BluetoothService";
 
-    private final String appName;
     private final Context mContext;
     private final BluetoothDevice mBluetoothDevice;
-    private ConnectThread mConnectThread;
-    private ConnectedThread mConnectedThread;
     private BluetoothSocket bluetoothSocket;
 
     private final UUID UUID;
 
     //tmp can delete
-    public boolean rfCommSuccess = false;
-    public boolean socketConnectSuccess = false;
+    private boolean rfCommSuccess = false;
+    private boolean socketConnectSuccess = false;
 
-    public BluetoothService(BluetoothDevice mBluetoothDevice, Context context) {
+    BluetoothService(BluetoothDevice mBluetoothDevice, Context context) {
         this.mBluetoothDevice = mBluetoothDevice;
-        appName = context.getString(R.string.app_name);
         this.mContext = context;
         this.UUID = mBluetoothDevice.getUuids()[0].getUuid();
     }
 
-    public boolean establishConnection(){
-
-        mConnectThread = new ConnectThread(mBluetoothDevice);
-
+    public BluetoothSocket establishConnection(BluetoothDevice device) throws InterruptedException {
+        ConnectThread mConnectThread = new ConnectThread(mBluetoothDevice);
         if(rfCommSuccess) {
             Log.d(TAG, "rfCommSucess");
             mConnectThread.start();
         }
         else{
             Log.d(TAG, "rfCommFailed");
-            return true;
+            return null;
         }
-        while (mConnectThread.isAlive()){
-        }
+        mConnectThread.join();
         if (socketConnectSuccess){
             Log.d(TAG, "socket success");
-            return true;
+            return bluetoothSocket;
         }
         else {
             Log.d(TAG, "socket failed");
-            return false;
+            return null;
         }
     }
 
+    public BluetoothSocket establishConnection() throws InterruptedException {
+        return establishConnection(mBluetoothDevice);
+    }
+
     private class ConnectThread extends Thread{
-        private final BluetoothDevice btDevice;
-        public ConnectThread(BluetoothDevice btDevice){
-            this.btDevice = btDevice;
+        ConnectThread(BluetoothDevice btDevice) {
             try {
                 bluetoothSocket = btDevice.createRfcommSocketToServiceRecord(UUID);
                 Log.d(TAG, "Trying to create a socket to connect to device! UUID " + UUID.toString());
                 rfCommSuccess = true;
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 Log.d(TAG, "Couldn't create a socket");
                 e.printStackTrace();
                 rfCommSuccess = false;
@@ -100,7 +92,6 @@ public class BluetoothService {
 
         @Override
         public void run(){
-            System.out.println("running");
             try {
                 bluetoothSocket.connect();
                 socketConnectSuccess = true;
@@ -114,6 +105,7 @@ public class BluetoothService {
                 }
             }
         }
+
         public void cancel(){
             try {
                 bluetoothSocket.close();
@@ -127,7 +119,7 @@ public class BluetoothService {
         private final InputStream inputStream;
         private final OutputStream outputStream;
 
-        public ConnectedThread(BluetoothSocket socket) {
+        ConnectedThread(BluetoothSocket socket) {
             this.connectedBluetoothSocket = socket;
             InputStream in = null;
             OutputStream out = null;
@@ -135,7 +127,6 @@ public class BluetoothService {
                 in = socket.getInputStream();
                 out = socket.getOutputStream();
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
             this.inputStream = in;
@@ -153,19 +144,17 @@ public class BluetoothService {
                     final String msgReceived = String.valueOf(bytes) +
                             " bytes received:\n"
                             + strReceived;
-                    Toast.makeText(mContext, "RECIEVED MESSAGE: "+ msgReceived, Toast.LENGTH_LONG);
+
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
             }
         }
 
-        public void write(byte[] buffer) {
+        void write(byte[] buffer) {
             try {
                 outputStream.write(buffer);
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
@@ -174,23 +163,29 @@ public class BluetoothService {
             try {
                 connectedBluetoothSocket.close();
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
     }
 
     public boolean sendMessage(String msg){
-        mConnectedThread = new ConnectedThread(bluetoothSocket);
+        ConnectedThread mConnectedThread = new ConnectedThread(bluetoothSocket);
 
         mConnectedThread.write(msg.getBytes());
 
         mConnectedThread.start();
 
         if (bluetoothSocket.isConnected()){
-            Toast.makeText(mContext, "Trying to send" + msg, Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, "Trying to send " + msg, Toast.LENGTH_SHORT).show();
         }
 
         return false;
+    }
+
+    public boolean checkSocketConnection(){
+        if (bluetoothSocket == null){
+            return false;
+        }
+        return bluetoothSocket.isConnected();
     }
 }

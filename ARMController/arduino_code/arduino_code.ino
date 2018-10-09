@@ -14,6 +14,7 @@ void loop() {
   while(Serial.available() > 0)
   {
     command = ((byte)Serial.read());
+    Serial.print(string);
     if(command == ':') {
       break;
     }      

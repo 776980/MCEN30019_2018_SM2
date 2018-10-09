@@ -12,7 +12,7 @@ import android.widget.Toast;
 public class PermissionsActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
 
 
-    private final String[] PERMISSIONS_BLUETOOTH = {Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN, Manifest.permission.SEND_SMS};
+    private final String[] PERMISSIONS_BLUETOOTH = {Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN, Manifest.permission.BODY_SENSORS };
     private int REQUEST_BLUETOOTH = 0;
 
 
@@ -29,7 +29,7 @@ public class PermissionsActivity extends AppCompatActivity implements ActivityCo
         return ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) == PackageManager.PERMISSION_GRANTED
                 //This one is only for testing can remove
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED;
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.BODY_SENSORS ) == PackageManager.PERMISSION_GRANTED;
     }
 
     private void requestBluetoothPermissions(){
