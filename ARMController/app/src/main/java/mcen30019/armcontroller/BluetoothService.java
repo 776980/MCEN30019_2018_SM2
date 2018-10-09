@@ -160,6 +160,7 @@ public class BluetoothService {
                 }
             }
         }
+
         public void write(byte[] buffer) {
             try {
                 outputStream.write(buffer);
@@ -181,8 +182,15 @@ public class BluetoothService {
 
     public boolean sendMessage(String msg){
         mConnectedThread = new ConnectedThread(bluetoothSocket);
-        mConnectedThread.start();
+
         mConnectedThread.write(msg.getBytes());
+
+        mConnectedThread.start();
+
+        if (bluetoothSocket.isConnected()){
+            Toast.makeText(mContext, "Trying to send" + msg, Toast.LENGTH_SHORT).show();
+        }
+
         return false;
     }
 }

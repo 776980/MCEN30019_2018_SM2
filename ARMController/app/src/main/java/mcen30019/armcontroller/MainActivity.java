@@ -36,7 +36,9 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothDevice mBluetoothDevice;
     private BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     private Button testConnectionButton;
+    private Button ledOnButton;
 
+    private Button ledButtonOff;
 
     private int REQUEST_ENABLE_BT = 1;
 
@@ -89,6 +91,20 @@ public class MainActivity extends AppCompatActivity {
                 establishConnection();
             }
         });
+        ledOnButton = (Button) findViewById(R.id.led_on);
+        ledOnButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendMessageToBluetooth("O");
+            }
+        });
+        ledButtonOff = (Button) findViewById(R.id.led_off);
+        ledButtonOff.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendMessageToBluetooth("F");
+            }
+        });
     }
 
     private void establishConnection(){
@@ -97,7 +113,6 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Connection Successful with"+ bluetoothName +"!", Toast.LENGTH_SHORT).show();
             checkStatus();
         }
-        sendMessageToBluetooth();
     }
 
     private boolean turnBluetoothOn() {
@@ -190,8 +205,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private boolean sendMessageToBluetooth() {
-        mBluetoothService.sendMessage("Hey can you recieve anything");
+    private boolean sendMessageToBluetooth(String msg) {
+        mBluetoothService.sendMessage(msg);
         return false;
     }
 }
