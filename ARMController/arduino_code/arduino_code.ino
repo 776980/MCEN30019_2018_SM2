@@ -14,12 +14,23 @@ void loop() {
     Serial.println("String is this: " + string);
     delay(1);
   }
-  if(string == "ON") {
+  switch(string[0]) {
+   case 'O':
     LEDOn();
-  }
-  if (string =="OFF") {
+    break;
+   case 'F':
     LEDOff();
-  }
+    break;
+   case 'A':
+   
+    break;
+   case 'B':
+    break;
+   case 'C':
+    break;
+   default :
+    break;
+}
   string = "";
   command = "";
   //Serial.

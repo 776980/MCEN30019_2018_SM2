@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.Toast;
 import java.util.Set;
 import java.util.Timer;
@@ -22,8 +23,8 @@ public class MainActivity extends AppCompatActivity {
 
     private final String TAG = "MainActivity";
     private boolean preliminaryTaskStatus = false;
-    private final String ledOnMessage = "ON";
-    private final String ledOffMessage = "OFF";
+    private final String ledOnMessage = "O";
+    private final String ledOffMessage = "F";
     private final String bluetoothName = "HC-06";
 
     private static BlueToothStatus currentStatus = BlueToothStatus.UNCONNECTED;
@@ -78,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
         CONNECTED,
         ERROR,
     }
-
+    SeekBar thumbFinger;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -97,6 +98,25 @@ public class MainActivity extends AppCompatActivity {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        thumbFinger = (SeekBar) findViewById(R.id.bar_thumb);
+        thumbFinger.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if(progress == 0){
+                    sendMessageToBluetooth("A"+ 0);
+                }
+                else {
+                    sendMessageToBluetooth("A" + (progress - 1));
+                }
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
     }
 
     private void printSomething() {
@@ -161,7 +181,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startDemo() {
-        //TODO
+        Intent demoIntent = new Intent(this, DemoActivity.class);
+        startActivity(demoIntent);
+        finish();
     }
 
 
