@@ -22,8 +22,8 @@ public class MainActivity extends AppCompatActivity {
 
     private final String TAG = "MainActivity";
     private boolean preliminaryTaskStatus = false;
-    private final String ledOnMessage = "O";
-    private final String ledOffMessage = "F";
+    private final String ledOnMessage = "ON";
+    private final String ledOffMessage = "OFF";
     private final String bluetoothName = "HC-06";
 
     private static BlueToothStatus currentStatus = BlueToothStatus.UNCONNECTED;
@@ -62,7 +62,14 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         if (!preliminaryTaskStatus){
             doPreliminaryTasks();
-        };
+        }
+        else{
+            try {
+                checkStatus();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         //Do your work
     }
 
@@ -101,9 +108,9 @@ public class MainActivity extends AppCompatActivity {
         startConnectionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
                     Log.d(TAG, "Trying to connect!");
                     printSomething();
+                try {
                     establishConnection();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -114,6 +121,11 @@ public class MainActivity extends AppCompatActivity {
         ledOnButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                try {
+                    checkStatus();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 ledOn();
             }
         });

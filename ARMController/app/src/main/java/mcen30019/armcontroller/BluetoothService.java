@@ -34,6 +34,7 @@ import java.util.UUID;
  */
 public class BluetoothService {
 
+    private final String connectionVerificationString = "OK";
     private static final String TAG = "BluetoothService";
 
     private final Context mContext;
@@ -144,7 +145,7 @@ public class BluetoothService {
                     final String msgReceived = String.valueOf(bytes) +
                             " bytes received:\n"
                             + strReceived;
-
+                    strReceived(msgReceived);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -168,12 +169,17 @@ public class BluetoothService {
         }
     }
 
+
+    private void strReceived(String msg) {
+        Toast.makeText(mContext, "Received msg " + msg + " ", Toast.LENGTH_LONG);
+    }
+
     public boolean sendMessage(String msg){
         ConnectedThread mConnectedThread = new ConnectedThread(bluetoothSocket);
 
         mConnectedThread.write(msg.getBytes());
 
-        mConnectedThread.start();
+        //mConnectedThread.start();
 
         if (bluetoothSocket.isConnected()){
             Toast.makeText(mContext, "Trying to send " + msg, Toast.LENGTH_SHORT).show();
@@ -186,6 +192,14 @@ public class BluetoothService {
         if (bluetoothSocket == null){
             return false;
         }
+
         return bluetoothSocket.isConnected();
+    }
+    public String receiveMessage() throws InterruptedException {
+        ConnectedThread mConnectedThread = new ConnectedThread(bluetoothSocket);
+        mConnectedThread.write(connectionVerificationString.getBytes());
+        wait(2000);
+        mConnectedThread.start();
+        return null;
     }
 }

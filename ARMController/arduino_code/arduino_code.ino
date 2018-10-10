@@ -8,29 +8,21 @@ void setup() {
 }
 
 void loop() {
-  if (Serial.available() > 0) {
-    string = "";
-  }
-  while(Serial.available() > 0)
-  {
+  while(Serial.available() > 0) {
     command = ((byte)Serial.read());
-    Serial.print(string);
-    if(command == ':') {
-      break;
-    }      
-    else
-    {
-      string += command;
-    }      
+    string += command;
+    Serial.println("String is this: " + string);
     delay(1);
-  }    
-  if(string == "O") {
+  }
+  if(string == "ON") {
     LEDOn();
-  }    
-  if (string =="F")
-  {
+  }
+  if (string =="OFF") {
     LEDOff();
   }
+  string = "";
+  command = "";
+  //Serial.
 }
 
 void LEDOn() {   
