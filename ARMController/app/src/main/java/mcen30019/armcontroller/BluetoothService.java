@@ -182,7 +182,7 @@ public class BluetoothService {
         //mConnectedThread.start();
 
         if (bluetoothSocket.isConnected()){
-            Toast.makeText(mContext, "Trying to send " + msg, Toast.LENGTH_SHORT).show();
+            //Toast.makeText(mContext, "Trying to send " + msg, Toast.LENGTH_SHORT).show();
         }
 
         return false;

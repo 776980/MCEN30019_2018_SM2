@@ -79,7 +79,11 @@ public class MainActivity extends AppCompatActivity {
         CONNECTED,
         ERROR,
     }
+
     SeekBar thumbFinger;
+    SeekBar ringPinky;
+    SeekBar indexMiddle;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
         //find all the elements
         connectionStatusIcon = this.findViewById(R.id.connection_status_icon);
         getAllUIButtons();
+        getAllSeekBars();
         if(!preliminaryTaskStatus) {
             //get Bluetooth permissions if not have
             doPreliminaryTasks();
@@ -98,6 +103,9 @@ public class MainActivity extends AppCompatActivity {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    private void getAllSeekBars() {
         thumbFinger = (SeekBar) findViewById(R.id.bar_thumb);
         thumbFinger.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -107,6 +115,44 @@ public class MainActivity extends AppCompatActivity {
                 }
                 else {
                     sendMessageToBluetooth("A" + (progress - 1));
+                }
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
+        ringPinky = (SeekBar) findViewById(R.id.bar_ring_pinky);
+        ringPinky.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if(progress == 0){
+                    sendMessageToBluetooth("B"+ 0);
+                }
+                else {
+                    sendMessageToBluetooth("B" + (progress - 1));
+                }
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
+        indexMiddle = (SeekBar) findViewById(R.id.bar_index_middle);
+        indexMiddle.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if(progress == 0){
+                    sendMessageToBluetooth("C"+ 0);
+                }
+                else {
+                    sendMessageToBluetooth("C" + (progress - 1));
                 }
             }
             @Override
@@ -141,11 +187,6 @@ public class MainActivity extends AppCompatActivity {
         ledOnButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-                    checkStatus();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
                 ledOn();
             }
         });
@@ -160,7 +201,24 @@ public class MainActivity extends AppCompatActivity {
         contractHandButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                armController.contractHand();
+                sendMessageToBluetooth("A"+50);
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                sendMessageToBluetooth("B"+50);
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                sendMessageToBluetooth("C"+50);
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         });
         startDemoButton = (Button) findViewById(R.id.start_demo_button);

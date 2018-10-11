@@ -34,21 +34,30 @@ void loop() {
   val[0]=string[1];
   val[1]=string[2];
   
-  if(string[0] == 'O') {
+  switch(string[0]) {
+  case('O'):
     Serial.println("String is this: " + string);
     LEDOn();
-  }    
-  if (string[0] == 'F')
-  {
+    break;
+  case('F'):
     Serial.println("String is this: " + string);
     LEDOff();
-  }   
-  if (string[0] == 'A')
-  {
-    
+    break;
+  case('A'):
     Serial.println("String is this: " + string + " atoi is " + (atoi(val) * 180)/99);
     servo_index_middle.write((atoi(val) * 180)/99);
     delay(15);
+    break;
+  case('B'):
+    Serial.println("String is this: " + string + " atoi is " + (atoi(val) * 180)/99);
+    servo_ring_pinky.write((atoi(val) * 180)/99);
+    delay(15);
+    break;
+  case('C'):
+    Serial.println("String is this: " + string + " atoi is " + (atoi(val) * 180)/99);
+    servo_thumb.write((atoi(val) * 180)/99);
+    delay(15);
+    break;
   }
   string = "";
   command = "";
