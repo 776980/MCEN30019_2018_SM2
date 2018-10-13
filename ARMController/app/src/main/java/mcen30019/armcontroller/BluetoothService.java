@@ -24,6 +24,7 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.util.UUID;
 
 /**
@@ -37,6 +38,7 @@ public class BluetoothService {
     private final String connectionVerificationString = "OK";
     private static final String TAG = "BluetoothService";
 
+    private ConnectThread mConnectThread;
     private final Context mContext;
     private final BluetoothDevice mBluetoothDevice;
     private BluetoothSocket bluetoothSocket;
@@ -54,7 +56,7 @@ public class BluetoothService {
     }
 
     public BluetoothSocket establishConnection(BluetoothDevice device) throws InterruptedException {
-        ConnectThread mConnectThread = new ConnectThread(mBluetoothDevice);
+        mConnectThread = new ConnectThread(mBluetoothDevice);
         if(rfCommSuccess) {
             Log.d(TAG, "rfCommSucess");
             mConnectThread.start();
@@ -76,6 +78,12 @@ public class BluetoothService {
 
     public BluetoothSocket establishConnection() throws InterruptedException {
         return establishConnection(mBluetoothDevice);
+    }
+
+    public void disconnect() {
+        if (mConnectThread != null){
+            mConnectThread.cancel();
+        }
     }
 
     private class ConnectThread extends Thread{

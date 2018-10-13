@@ -11,38 +11,34 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.SeekBar;
-import android.widget.Toast;
-import java.util.Set;
+import android.widget.*;
+
 import java.util.Timer;
+import java.util.Set;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
+    private final String TAG = "MainActivity"; //For logging into logcat
+    private boolean preliminaryTaskStatus = false; //this flag is the check if bluetooth is on,
+    // paired and all permissions are given
 
-    private final String TAG = "MainActivity";
-    private boolean preliminaryTaskStatus = false;
-    private final String ledOnMessage = "O";
-    private final String ledOffMessage = "F";
-    private final String bluetoothName = "HC-06";
+    private final int blinkRate = 300;
+    private final String bluetoothName = "HC-06"; //Bluetooth to connect to
+    private BlueToothStatus currentStatus = BlueToothStatus.UNCONNECTED; //When the app starts the bluetooth is unconne
+    private ImageView connectionStatusIcon; //This imageview will display connection status
+    static BluetoothService mBluetoothService; //Bluetooth service personal class
+    private BluetoothDevice mBluetoothDevice;  //device to connect to // same as BluetoothName
 
-    private static BlueToothStatus currentStatus = BlueToothStatus.UNCONNECTED;
-    private static ImageView connectionStatusIcon;
-    private BluetoothService mBluetoothService;
-    private BluetoothDevice mBluetoothDevice;
-    private BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+    private Button startConnectionButton;   //Start to connect //Hide when unconnected
 
-    private Button startConnectionButton;
-    private Button ledOnButton;
-    private Button ledButtonOff;
-    private Button contractHandButton;
-    private Button startDemoButton;
-    private ArmController armController;
+    private Button callibrateButton;
+    private Switch emgSwitch;
+
+    private Blinker blinker;
 
     private int REQUEST_ENABLE_BT = 1;
 
-    private boolean doPreliminaryTasks() {
+    private void doPreliminaryTasks() {
         //check what task was being done after coming to the app
         if (getBluetoothPermissions()) {
             if (turnBluetoothOn()) {
@@ -50,214 +46,144 @@ public class MainActivity extends AppCompatActivity {
                     if (testConnection()) {
                         //Everything okay
                         preliminaryTaskStatus = true;
-                        return true;
                     }
                 }
             }
         }
-        return false;
     }
 
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
-        if (!preliminaryTaskStatus){
+        if (!preliminaryTaskStatus) {
             doPreliminaryTasks();
+        } else {
+            checkStatus();
         }
-        else{
-            try {
-                checkStatus();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        //Do your work
     }
 
-    private enum BlueToothStatus{
+    private enum BlueToothStatus {
         UNCONNECTED,
         CONNECTED,
         ERROR,
     }
 
-    SeekBar thumbFinger;
-    SeekBar ringPinky;
-    SeekBar indexMiddle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //find all the elements
-        connectionStatusIcon = this.findViewById(R.id.connection_status_icon);
-        getAllUIButtons();
-        getAllSeekBars();
-        if(!preliminaryTaskStatus) {
+        getAllUIElements();
+        if (!preliminaryTaskStatus) {
             //get Bluetooth permissions if not have
             doPreliminaryTasks();
         }
-        try {
-            if(preliminaryTaskStatus){
-                checkStatus();
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        if (preliminaryTaskStatus) {
+            checkStatus();
         }
     }
 
-    private void getAllSeekBars() {
-        thumbFinger = (SeekBar) findViewById(R.id.bar_thumb);
-        thumbFinger.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if(progress == 0){
-                    sendMessageToBluetooth("A"+ 0);
-                }
-                else {
-                    sendMessageToBluetooth("A" + (progress - 1));
-                }
-            }
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-            }
-        });
-        ringPinky = (SeekBar) findViewById(R.id.bar_ring_pinky);
-        ringPinky.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if(progress == 0){
-                    sendMessageToBluetooth("B"+ 0);
-                }
-                else {
-                    sendMessageToBluetooth("B" + (progress - 1));
-                }
-            }
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-            }
-        });
-        indexMiddle = (SeekBar) findViewById(R.id.bar_index_middle);
-        indexMiddle.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if(progress == 0){
-                    sendMessageToBluetooth("C"+ 0);
-                }
-                else {
-                    sendMessageToBluetooth("C" + (progress - 1));
-                }
-            }
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-            }
-        });
+    private void makeToast(String msg) {
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
-    private void printSomething() {
-        Toast.makeText(this, "Something being printed", Toast.LENGTH_SHORT);
-    }
+    private void getAllUIElements() {
+        connectionStatusIcon = this.findViewById(R.id.connection_status_icon);
+        blinker = new Blinker(connectionStatusIcon, blinkRate);
 
-    private void getAllUIButtons(){
-        startConnectionButton = (Button) findViewById(R.id.start_connection_button);
+        startConnectionButton = findViewById(R.id.start_connection_button);
         startConnectionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                    Log.d(TAG, "Trying to connect!");
-                    printSomething();
-                try {
-                    establishConnection();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                if (startConnectionButton.getText().toString().equals(getResources().getString(R.string.connect))) {
+                    try {
+                        establishConnection();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    disconnectBluetooth();
                 }
             }
         });
-        ledOnButton = (Button) findViewById(R.id.led_on);
-        ledOnButton.setOnClickListener(new View.OnClickListener() {
+        callibrateButton = findViewById(R.id.callibrate_button);
+        callibrateButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                ledOn();
+                openController();
             }
         });
-        ledButtonOff = (Button) findViewById(R.id.led_off);
-        ledButtonOff.setOnClickListener(new View.OnClickListener() {
+        emgSwitch = this.findViewById(R.id.emg_switch);
+        emgSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public void onClick(View v) {
-                ledOff();
-            }
-        });
-        contractHandButton = (Button) findViewById(R.id.contract_hand_button);
-        contractHandButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                sendMessageToBluetooth("A"+50);
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (currentStatus == BlueToothStatus.UNCONNECTED){
+                    makeToast("Please connect first");
+                    emgSwitch.setChecked(false);
+                    isChecked = false;
                 }
-                sendMessageToBluetooth("B"+50);
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                if (!isChecked){
+                    callibrateButton.setText("CONTROLLER");
+                    callibrateButton.setOnClickListener(new View.OnClickListener(){
+                        @Override
+                        public void onClick(View v) {
+                            openController();
+                        }
+                    });
                 }
-                sendMessageToBluetooth("C"+50);
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                else {
+                    callibrateButton.setText("CALLIBRATE");
+                    callibrateButton.setOnClickListener(new View.OnClickListener(){
+                        @Override
+                        public void onClick(View v) {
+                            openCallibration();
+                        }
+                    });
                 }
-            }
-        });
-        startDemoButton = (Button) findViewById(R.id.start_demo_button);
-        startDemoButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startDemo();
             }
         });
     }
 
+    private void openController() {
+        if (currentStatus == BlueToothStatus.UNCONNECTED){
+            makeToast("Please connect first");
+            return;
+        }
+        Intent controllerIntent = new Intent(this, ControllerActivity.class);
+        startActivity(controllerIntent);
+    }
 
-    private void ledOn() {
-        sendMessageToBluetooth(ledOnMessage);
-    }
-    private void ledOff() {
-        sendMessageToBluetooth(ledOffMessage);
+    private void openCallibration() {
+        Intent controllerIntent = new Intent(this, CallibrationActivity.class);
+        startActivity(controllerIntent);
     }
 
-    private void startDemo() {
-        Intent demoIntent = new Intent(this, DemoActivity.class);
-        startActivity(demoIntent);
-        finish();
+
+    private void disconnectBluetooth() {
+        mBluetoothService.disconnect();
+        startConnectionButton.setText(R.string.connect);
+        makeToast("Bluetooth disconnected");
+        emgSwitch.setChecked(false);
+        checkStatus();
     }
+
 
 
     private void establishConnection() throws InterruptedException {
-        Toast.makeText(this, "Trying to connect"+ bluetoothName +"!", Toast.LENGTH_SHORT).show();
-        if (mBluetoothService.establishConnection() != null){
-            startConnectionButton.setVisibility(View.GONE);
-            Toast.makeText(this, "Connection Successful with"+ bluetoothName +"!", Toast.LENGTH_SHORT).show();
-        }
-        else {
-            Toast.makeText(this, "Connection to "+ bluetoothName +"failed", Toast.LENGTH_SHORT).show();
+        if (mBluetoothService.establishConnection() != null) {
+            startConnectionButton.setText(R.string.disconnect);
+            Toast.makeText(this, "Connection Successful with " + bluetoothName + "!", Toast.LENGTH_SHORT).show();
+        } else {
+            startConnectionButton.setText(R.string.connect);
+            Toast.makeText(this, "Connection to " + bluetoothName + "failed", Toast.LENGTH_SHORT).show();
         }
         checkStatus();
     }
 
     private boolean turnBluetoothOn() {
+        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter(); //mobile phones adapter
+        // only need once
         if (mBluetoothAdapter == null) {
             currentStatus = BlueToothStatus.ERROR;
             Toast.makeText(this, "This device doesn't support bluetooth!", Toast.LENGTH_SHORT).show();
@@ -272,15 +198,16 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    private boolean checkBluetoothPairing(){
+    private boolean checkBluetoothPairing() {
+        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter(); //mobile phones adapter
+        // only need once
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
         if (pairedDevices.size() > 0) {
             // There are paired devices. Get the name and address of each paired device.
             for (BluetoothDevice device : pairedDevices) {
                 String deviceName = device.getName();
-                String deviceHardwareAddress = device.getAddress(); // MAC address
-                if (deviceName.equals(bluetoothName)){
-                        mBluetoothDevice = device;
+                if (deviceName.equals(bluetoothName)) {
+                    mBluetoothDevice = device;
                     return true;
                 }
             }
@@ -290,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private boolean connectBluetooth() {
-        if(!checkBluetoothPairing()){
+        if (!checkBluetoothPairing()) {
             Toast.makeText(this, "Please connect to " + this.bluetoothName + "!", Toast.LENGTH_SHORT).show();
             final Intent intent = new Intent(Intent.ACTION_MAIN, null);
             intent.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -298,7 +225,7 @@ public class MainActivity extends AppCompatActivity {
                     "com.android.settings.bluetooth.BluetoothSettings");
             intent.setComponent(cn);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity( intent);
+            startActivity(intent);
             return false;
         }
         return true;
@@ -306,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean testConnection() {
         //mBluetoothService = new BluetoothService(this);
-        if (mBluetoothDevice == null){
+        if (mBluetoothDevice == null) {
             return false;
         }
         mBluetoothService = new BluetoothService(mBluetoothDevice, this);
@@ -315,113 +242,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private boolean checkStatus() throws InterruptedException {
+    private void checkStatus() {
         //Everything is unconnected
-        if (!mBluetoothService.checkSocketConnection()){
+        if (!mBluetoothService.checkSocketConnection()) {
             currentStatus = BlueToothStatus.UNCONNECTED;
-        }
-        else {
+        } else {
             currentStatus = BlueToothStatus.CONNECTED;
         }
-
-//        //if connecting
-//        connectionStatusIcon.setImageResource(R.color.colorConnecting);
-//        //if connected
-//        connectionStatusIcon.setImageResource(R.color.colorOkay);
-//        //if error
-//        connectionStatusIcon.setImageResource(R.color.colorError);
-        statusLight(currentStatus);
-        return true;
-        //if not
- //       return false;
-    }
-
-    private void statusLight(final BlueToothStatus currentStatus) throws InterruptedException {
-        Thread thread;
-        switch (currentStatus) {
-            case UNCONNECTED:
-                thread = new Thread(){
-                @Override
-                public void run(){
-                        try {
-                            while (true) {
-                                if (MainActivity.currentStatus == BlueToothStatus.UNCONNECTED) {
-                                    Thread.sleep(500);  //1000ms = 1 sec
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            connectionStatusIcon.setImageResource(R.color.colorError);
-                                        }
-                                    });
-                                    Thread.sleep(500);  //1000ms = 1 sec
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            connectionStatusIcon.setImageResource(R.color.colorConnecting);
-                                        }
-                                    });
-                                }
-                                else {
-                                    break;
-                                }
-                            }
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                };
-                thread.start();
-                break;
-            case CONNECTED:
-                thread = new Thread(){
-                @Override
-                public void run(){
-                        try {
-                            while (true) {
-                                if (MainActivity.currentStatus == BlueToothStatus.CONNECTED) {
-                                    Thread.sleep(500);  //1000ms = 1 sec
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            connectionStatusIcon.setImageResource(R.color.colorConnecting);
-                                        }
-                                    });
-                                    Thread.sleep(500);  //1000ms = 1 sec
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            connectionStatusIcon.setImageResource(R.color.colorOkay);
-                                        }
-                                    });
-                                }
-                                else {
-                                    break;
-                                }
-                            }
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                };
-                thread.start();
-                break;
-            case ERROR:
-                connectionStatusIcon.setImageResource(R.color.colorError);
-                break;
-            default:
-                connectionStatusIcon.setImageResource(R.color.colorConnecting);
-                break;
-        }
+        blinker.changeBlinker(currentStatus);
     }
 
 
-    private boolean getBluetoothPermissions(){
+    private boolean getBluetoothPermissions() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_GRANTED
-                    && ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) == PackageManager.PERMISSION_GRANTED
-        && ActivityCompat.checkSelfPermission(this, Manifest.permission.BODY_SENSORS) == PackageManager.PERMISSION_GRANTED) {
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) == PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.BODY_SENSORS) == PackageManager.PERMISSION_GRANTED) {
             return true;
-        }
-        else {
+        } else {
             Intent intent = new Intent(this, PermissionsActivity.class);
             startActivity(intent);
             return false;
@@ -443,4 +280,70 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
+    private class Blinker{
+        ImageView icon;
+        SchedulerThread schedulerThread;
+        Blinker(ImageView imageIcon, int blinkRate){
+            this.icon = imageIcon;
+            schedulerThread = new SchedulerThread(imageIcon, blinkRate);
+        }
+
+        void changeBlinker(BlueToothStatus currentStatus){
+            schedulerThread.notifyBlinkerThread(currentStatus);
+        }
+
+        private class SchedulerThread{
+            private Timer timer = new Timer();
+            private BlinkerThread blinkerThread;
+            SchedulerThread(ImageView imageIcon, int blinkRate){
+                timer.scheduleAtFixedRate(new TimerTask() {
+                    @Override
+                    public void run() {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                blinkerThread.go();
+                            }
+                        });
+                    }
+                }, blinkRate, blinkRate);
+                blinkerThread = new BlinkerThread(imageIcon);
+            }
+
+            void notifyBlinkerThread(BlueToothStatus currentStatus) {
+                blinkerThread.statusChanged(currentStatus);
+            }
+        }
+
+        private class BlinkerThread{
+            BlueToothStatus currentStatus = BlueToothStatus.UNCONNECTED;
+            ImageView imageView;
+            private boolean flag = false;
+            BlinkerThread(ImageView imageView){
+                this.imageView = imageView;
+            }
+            void go() {
+                if (currentStatus == BlueToothStatus.UNCONNECTED){
+                    if (flag) {
+                        imageView.setImageResource(R.color.colorConnecting);
+                    }
+                    else {
+                        imageView.setImageResource(R.color.colorError);
+                    }
+                }
+                else if(currentStatus == BlueToothStatus.CONNECTED){
+                    if (flag) {
+                        imageView.setImageResource(R.color.colorOkay);
+                    }
+                    else {
+                        imageView.setImageResource(R.color.colorConnecting);
+                    }
+                }
+                flag = !flag;
+            }
+            void statusChanged(BlueToothStatus currentStatus) {
+                this.currentStatus = currentStatus;
+            }
+        }
+    }
 }

@@ -24,7 +24,12 @@
         </activity>
         <activity android:name=".PermissionsActivity">
         </activity>
-        <activity android:name=".DemoActivity">
+        <activity android:name=".ControllerActivity">
+        </activity>
+        <activity
+                android:name=".CallibrationActivity"
+                android:label="@string/title_activity_callibration"
+                android:theme="@style/Theme.AppCompat.Light.NoActionBar">
         </activity>
     </application>
 
