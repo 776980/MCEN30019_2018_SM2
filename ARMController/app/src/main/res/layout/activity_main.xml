@@ -53,4 +53,20 @@
             app:layout_constraintTop_toBottomOf="@+id/connection_status_icon" android:layout_marginBottom="93dp"
             app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"/>
+    <Button
+            android:text="LED ON"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/led_on_button"
+            app:layout_constraintStart_toStartOf="@+id/status_text" android:layout_marginLeft="30dp"
+            android:layout_marginStart="30dp" android:layout_marginBottom="13dp"
+            app:layout_constraintBottom_toTopOf="@+id/start_connection_button"/>
+    <Button
+            android:text="LED OFF"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/led_off_button"
+            app:layout_constraintStart_toEndOf="@+id/start_connection_button"
+            app:layout_constraintEnd_toEndOf="@+id/start_connection_button" android:layout_marginBottom="13dp"
+            app:layout_constraintBottom_toTopOf="@+id/start_connection_button"/>
 </android.support.constraint.ConstraintLayout>

@@ -26,12 +26,16 @@ public class MainActivity extends AppCompatActivity {
     private final String bluetoothName = "HC-06"; //Bluetooth to connect to
     private BlueToothStatus currentStatus = BlueToothStatus.UNCONNECTED; //When the app starts the bluetooth is unconne
     private ImageView connectionStatusIcon; //This imageview will display connection status
-    static BluetoothService mBluetoothService; //Bluetooth service personal class
+    public static BluetoothService mBluetoothService; //Bluetooth service personal class
     private BluetoothDevice mBluetoothDevice;  //device to connect to // same as BluetoothName
 
     private Button startConnectionButton;   //Start to connect //Hide when unconnected
 
     private Button callibrateButton;
+
+    private Button ledOn;
+    private Button ledOff;
+
     private Switch emgSwitch;
 
     private Blinker blinker;
@@ -107,6 +111,21 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        ledOn = findViewById(R.id.led_on_button);
+        ledOn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendMessageToBluetooth("O");
+            }
+        });
+        ledOff = findViewById(R.id.led_off_button);
+        ledOff.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendMessageToBluetooth("F");
+            }
+        });
         callibrateButton = findViewById(R.id.callibrate_button);
         callibrateButton.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -131,6 +150,7 @@ public class MainActivity extends AppCompatActivity {
                             openController();
                         }
                     });
+                    sendMessageToBluetooth("E2");
                 }
                 else {
                     callibrateButton.setText("CALLIBRATE");
@@ -140,6 +160,7 @@ public class MainActivity extends AppCompatActivity {
                             openCallibration();
                         }
                     });
+                    sendMessageToBluetooth("E1");
                 }
             }
         });
@@ -275,7 +296,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private boolean sendMessageToBluetooth(String msg) {
+    public static boolean sendMessageToBluetooth(String msg) {
         mBluetoothService.sendMessage(msg);
         return false;
     }

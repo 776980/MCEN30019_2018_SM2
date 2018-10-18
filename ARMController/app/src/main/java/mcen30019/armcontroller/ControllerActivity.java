@@ -13,7 +13,6 @@ public class ControllerActivity extends AppCompatActivity {
     SeekBar indexMiddle;
     SeekBar ringPinky;
     SeekBar thumbFinger;
-    BluetoothService mBluetoothService;
     private class SliderValue{
         SeekBar seekBar;
         Integer newValue;
@@ -23,11 +22,12 @@ public class ControllerActivity extends AppCompatActivity {
         }
     }
 
-    Button expandAllButton;
-    Button contractAllButton;
-    Button grabBallButton;
-    Button grabMarkerButton;
-    Button grabHammerButton;
+    private Button expandAllButton;
+    private Button contractAllButton;
+    private Button grabBallButton;
+    private Button grabMarkerButton;
+    private Button grabHammerButton;
+    private Button wavingButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,8 +35,6 @@ public class ControllerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_controller);
         getAllSliders();
         getAllButtons();
-        mBluetoothService = MainActivity.mBluetoothService;
-        Toast.makeText(this, "Socket is " + mBluetoothService.checkSocketConnection(), Toast.LENGTH_SHORT);
     }
 
     private void getAllButtons() {
@@ -44,21 +42,9 @@ public class ControllerActivity extends AppCompatActivity {
         contractAllButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendMessageToBluetooth("A"+180);
+                sendMessageToBluetooth("C");
                 try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                sendMessageToBluetooth("B"+180);
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                sendMessageToBluetooth("C"+180);
-                try {
-                    Thread.sleep(50);
+                    Thread.sleep(100);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -68,19 +54,7 @@ public class ControllerActivity extends AppCompatActivity {
         expandAllButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendMessageToBluetooth("A"+0);
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                sendMessageToBluetooth("B"+0);
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                sendMessageToBluetooth("C"+0);
+                sendMessageToBluetooth("X");
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
@@ -91,68 +65,46 @@ public class ControllerActivity extends AppCompatActivity {
         grabMarkerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendMessageToBluetooth("A"+50);
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                sendMessageToBluetooth("B"+50);
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                sendMessageToBluetooth("C"+50);
+                sendMessageToBluetooth("M");
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-        });grabHammerButton = (Button) findViewById(R.id.button_hammer);
+        });
+        grabHammerButton = (Button) findViewById(R.id.button_hammer);
         grabHammerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendMessageToBluetooth("A"+50);
+                sendMessageToBluetooth("H");
                 try {
-                    Thread.sleep(50);
+                    Thread.sleep(100);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                sendMessageToBluetooth("B"+50);
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                sendMessageToBluetooth("C"+50);
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+
             }
         });
         grabBallButton = (Button) findViewById(R.id.button_ball);
         grabBallButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendMessageToBluetooth("A"+50);
+                sendMessageToBluetooth("B");
                 try {
-                    Thread.sleep(50);
+                    Thread.sleep(100);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                sendMessageToBluetooth("B"+50);
+            }
+        });
+        wavingButton = (Button) findViewById(R.id.wave_button);
+        wavingButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendMessageToBluetooth("W");
                 try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                sendMessageToBluetooth("C"+50);
-                try {
-                    Thread.sleep(50);
+                    Thread.sleep(100);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -169,12 +121,7 @@ public class ControllerActivity extends AppCompatActivity {
         thumbFinger.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if(progress == 0){
-                    sendMessageToBluetooth("A"+ 0);
-                }
-                else {
-                    sendMessageToBluetooth("A" + (progress - 1));
-                }
+                sendMessageToBluetooth("T" + progress);
             }
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
@@ -188,12 +135,7 @@ public class ControllerActivity extends AppCompatActivity {
         ringPinky.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if(progress == 0){
-                    sendMessageToBluetooth("B"+ 0);
-                }
-                else {
-                    sendMessageToBluetooth("B" + (99-(progress - 1)));
-                }
+                sendMessageToBluetooth("R" + progress);
             }
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
@@ -207,12 +149,7 @@ public class ControllerActivity extends AppCompatActivity {
         indexMiddle.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if(progress == 0){
-                    sendMessageToBluetooth("C"+ 0);
-                }
-                else {
-                    sendMessageToBluetooth("C" + (progress - 1));
-                }
+                sendMessageToBluetooth("I" + progress);
             }
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
@@ -228,7 +165,8 @@ public class ControllerActivity extends AppCompatActivity {
         return new SliderValue(seekBar, integer);
     }
 
-    public void sendMessageToBluetooth(String msg){
-        mBluetoothService.sendMessage(msg);
+    private void sendMessageToBluetooth(String msg){
+        makeToast("Sending \"" + msg + "\"");
+        MainActivity.sendMessageToBluetooth(msg);
     }
 }
