@@ -166,7 +166,6 @@ public class ControllerActivity extends AppCompatActivity {
     }
 
     private void sendMessageToBluetooth(String msg){
-        makeToast("Sending \"" + msg + "\"");
         MainActivity.sendMessageToBluetooth(msg);
     }
 }

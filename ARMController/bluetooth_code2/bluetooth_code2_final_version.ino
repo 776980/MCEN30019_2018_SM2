@@ -14,7 +14,7 @@ int threshold = 5;
 // Estimate the sampling rate we are getting
 double tNow;
 double samplingRate;
-bool emg = false;
+bool emg = true;
 bool isContracted = false;
 bool outPulseVal = true;
 int numSample = 32; // num of samples to average (EMG avg sample)
@@ -94,9 +94,9 @@ void loop() {
       delay(15);
       break;
     case('R'): //RingPinky
-      servo_ring_pinky.write((atoi(&string[1]) * 180)/99);
+      servo_ring_pinky.write(180 - (atoi(&string[1]) * 180)/99);
       Serial.print("RingPinky ");
-      Serial.println((atoi(&string[1]) * 180)/99);
+      Serial.println(180 - (atoi(&string[1]) * 180)/99);
       delay(15);
       break;
     case('T'): //Thumb
@@ -203,7 +203,7 @@ void contract_hand(){
   for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
     // in steps of 1 degree
     servo_index_middle.write(pos);              // tell servo to go to position in variable 'pos'
-    servo_ring_pinky.write(pos);              // tell servo to go to position in variable 'pos'
+    servo_ring_pinky.write(180 - pos);              // tell servo to go to position in variable 'pos'
     delay(15);                       // waits 15ms for the servo to reach the position
   }
   for (pos = 0; pos <= 180; pos++) { // goes from 180 degrees to 0 degrees
@@ -217,7 +217,7 @@ void expand_hand(){
   int pos;
   for (pos = 180; pos >= 0; pos -= 1) { // goes from 180 degrees to 0 degrees
     servo_index_middle.write(pos);              // tell servo to go to position in variable 'pos'
-    servo_ring_pinky.write(pos);
+    servo_ring_pinky.write(180 - pos);
     servo_thumb.write(pos);               // tell servo to go to position in variable 'pos'
     delay(15);                       // waits 15ms for the servo to reach the position
   }
@@ -235,12 +235,12 @@ void wave(){
   static int wave_pos = 1;
   static bool drctn = true;
 
-  servo_index_middle.write(90 - wave_pos);// tell servo to go to position in variable 'pos'
+  servo_index_middle.write(wave_pos);// tell servo to go to position in variable 'pos'
   Serial.print("index middle ");
-  Serial.println(90 - wave_pos);
-  servo_ring_pinky.write(wave_pos);
-  Serial.print("ring pinky ");
   Serial.println(wave_pos);
+  servo_ring_pinky.write(wave_pos + 90);
+  Serial.print("ring pinky ");
+  Serial.println(wave_pos + 90);
   if(wave_pos > 89 || wave_pos < 1){
     drctn = !drctn;
   }
